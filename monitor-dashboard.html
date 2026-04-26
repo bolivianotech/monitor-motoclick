@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexus · Monitor Central</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0c10;
+      --surface:   #111318;
+      --surface2:  #161922;
+      --border:    #1e2230;
+      --accent1:   #00e5ff;
+      --accent2:   #7b5cf5;
+      --accent3:   #00ff9d;
+      --text:      #e8eaf0;
+      --muted:     #5a6070;
+      --danger:    #ff4d6a;
+      --warn:      #ffb547;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+
+    /* === HEADER === */
+    header {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,12,16,0.95);
+      backdrop-filter: blur(12px);
+    }
+
+    .logo-group { display: flex; align-items: center; gap: 14px; }
+
+    .logo-mark {
+      width: 36px; height: 36px;
+      border: 2px solid var(--accent1);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px; font-weight: 700;
+      color: var(--accent1);
+      box-shadow: 0 0 12px rgba(0,229,255,0.3);
+      animation: pulse-border 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-border {
+      0%,100% { box-shadow: 0 0 12px rgba(0,229,255,0.3); }
+      50%      { box-shadow: 0 0 24px rgba(0,229,255,0.6); }
+    }
+
+    .logo-text { font-weight: 700; font-size: 15px; letter-spacing: 0.04em; }
+    .logo-text span { color: var(--accent1); }
+
+    .status-bar {
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px; color: var(--muted);
+    }
+    .dot-live {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent3);
+      box-shadow: 0 0 8px var(--accent3);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* === GRID === */
+    main {
+      position: relative; z-index: 5;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 24px 32px 32px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .card-wide { grid-column: 1 / -1; }
+
+    /* === CARD === */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: border-color 0.3s, transform 0.2s;
+    }
+    .card:hover {
+      border-color: rgba(0,229,255,0.2);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .card-title-group { display: flex; align-items: center; gap: 10px; }
+
+    .card-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+    }
+    .icon-blue   { background: rgba(0,229,255,0.12); color: var(--accent1); }
+    .icon-purple { background: rgba(123,92,245,0.15); color: var(--accent2); }
+    .icon-green  { background: rgba(0,255,157,0.12); color: var(--accent3); }
+
+    .card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+    .card-sub   { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 1px; }
+
+    .card-actions { display: flex; align-items: center; gap: 8px; }
+
+    .tag {
+      font-size: 10px; font-family: 'Space Mono', monospace;
+      padding: 3px 8px; border-radius: 4px; border: 1px solid;
+    }
+    .tag-blue   { color: var(--accent1); border-color: rgba(0,229,255,0.3);  background: rgba(0,229,255,0.06); }
+    .tag-purple { color: var(--accent2); border-color: rgba(123,92,245,0.3); background: rgba(123,92,245,0.06); }
+    .tag-green  { color: var(--accent3); border-color: rgba(0,255,157,0.3);  background: rgba(0,255,157,0.06); }
+
+    .btn-open {
+      font-size: 10px; font-family: 'Space Mono', monospace;
+      padding: 4px 10px; border-radius: 5px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--muted);
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .btn-open:hover { border-color: var(--accent1); color: var(--accent1); }
+
+    /* === WIDGET BODY === */
+    .widget-body {
+      padding: 20px 20px 24px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+
+    /* Big status row */
+    .status-row {
+      display: flex; align-items: center; gap: 16px;
+    }
+
+    .status-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: 99px;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.05em;
+      border: 1px solid;
+    }
+    .status-pill.up {
+      color: var(--accent3);
+      border-color: rgba(0,255,157,0.4);
+      background: rgba(0,255,157,0.08);
+    }
+    .status-pill.down {
+      color: var(--danger);
+      border-color: rgba(255,77,106,0.4);
+      background: rgba(255,77,106,0.08);
+    }
+    .status-pill .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+    }
+    .status-pill.up .dot { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+    .status-pill.down .dot { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+
+    .status-meta {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .status-meta .uptime-pct {
+      font-family: 'Space Mono', monospace;
+      font-size: 22px; font-weight: 700;
+      color: var(--text);
+    }
+    .status-meta .uptime-label {
+      font-size: 10px; color: var(--muted);
+    }
+
+    .ping-display {
+      margin-left: auto;
+      text-align: right;
+    }
+    .ping-display .ping-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 18px; font-weight: 700;
+      color: var(--accent1);
+    }
+    .ping-display .ping-label {
+      font-size: 10px; color: var(--muted);
+    }
+
+    /* Monitors grid (for wide card) */
+    .monitors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .monitor-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .monitor-item.up   { border-left: 3px solid var(--accent3); }
+    .monitor-item.down { border-left: 3px solid var(--danger); }
+
+    .monitor-item-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .monitor-name {
+      font-size: 12px; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 160px;
+    }
+    .monitor-ping {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px; color: var(--accent1);
+    }
+
+    /* Heartbeat bars */
+    .heartbeat-bars {
+      display: flex; align-items: flex-end; gap: 2px;
+      height: 32px;
+    }
+    .hb-bar {
+      flex: 1;
+      border-radius: 2px;
+      min-height: 4px;
+      transition: height 0.3s ease;
+    }
+    .hb-bar.up   { background: var(--accent3); opacity: 0.8; }
+    .hb-bar.down { background: var(--danger);  opacity: 0.9; }
+
+    /* Uptime mini row */
+    .monitor-footer {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .monitor-uptime {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px; color: var(--muted);
+    }
+    .monitor-uptime span { color: var(--accent3); }
+
+    /* Section label */
+    .section-label {
+      font-size: 10px; font-family: 'Space Mono', monospace;
+      color: var(--muted); letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0 20px;
+      margin-top: -8px;
+    }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,0.04) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Error state */
+    .error-msg {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px; padding: 28px;
+      color: var(--muted); font-size: 12px; text-align: center;
+    }
+    .error-msg .err-icon { font-size: 28px; }
+
+    /* === FOOTER === */
+    footer {
+      position: relative; z-index: 5;
+      text-align: center;
+      padding: 16px 32px 24px;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px; color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--accent2); text-decoration: none; }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; padding: 16px; gap: 14px; }
+      header { padding: 14px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-group">
+    <div class="logo-mark">NX</div>
+    <div>
+      <div class="logo-text">Nexus <span>·</span> Monitor Central</div>
+      <div style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:2px;">Infraestructura en tiempo real</div>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="dot-live"></div>
+    <span id="clock">--:--:--</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- === CARD 1: Nexus Uptime Monitor (ancho completo) === -->
+  <div class="card card-wide" id="card-uptime">
+    <div class="card-header">
+      <div class="card-title-group">
+        <div class="card-icon icon-blue">⬡</div>
+        <div>
+          <div class="card-title">Nexus Uptime Monitor</div>
+          <div class="card-sub">monitor.nexuspatiotech.com · Todos los servicios</div>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="tag tag-blue">UPTIME</span>
+        <a href="https://monitor.nexuspatiotech.com/" target="_blank" class="btn-open">↗ Abrir</a>
+      </div>
+    </div>
+    <div class="widget-body" id="widget-uptime">
+      <div class="skeleton" style="height:60px;"></div>
+      <div class="skeleton" style="height:120px;"></div>
+    </div>
+  </div>
+
+  <!-- === CARD 2: Motoclick Status === -->
+  <div class="card" id="card-motoclick">
+    <div class="card-header">
+      <div class="card-title-group">
+        <div class="card-icon icon-purple">◈</div>
+        <div>
+          <div class="card-title">Motoclick · Status Page</div>
+          <div class="card-sub">uptime.nexuspatiotech.com/status/motoclick</div>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="tag tag-purple">MOTOCLICK</span>
+        <a href="https://uptime.nexuspatiotech.com/status/motoclick" target="_blank" class="btn-open">↗ Abrir</a>
+      </div>
+    </div>
+    <div class="widget-body" id="widget-motoclick">
+      <div class="skeleton" style="height:60px;"></div>
+      <div class="skeleton" style="height:140px;"></div>
+    </div>
+  </div>
+
+  <!-- === CARD 3: Nexus Status === -->
+  <div class="card" id="card-nexus">
+    <div class="card-header">
+      <div class="card-title-group">
+        <div class="card-icon icon-green">◎</div>
+        <div>
+          <div class="card-title">Nexus Patio Tech · Status Page</div>
+          <div class="card-sub">uptime.nexuspatiotech.com/status/nexus</div>
+        </div>
+      </div>
+      <div class="card-actions">
+        <span class="tag tag-green">NEXUS</span>
+        <a href="https://uptime.nexuspatiotech.com/status/nexus" target="_blank" class="btn-open">↗ Abrir</a>
+      </div>
+    </div>
+    <div class="widget-body" id="widget-nexus">
+      <div class="skeleton" style="height:60px;"></div>
+      <div class="skeleton" style="height:140px;"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Nexus Patio Tech · Dashboard de Monitoreo &nbsp;|&nbsp;
+  Datos vía API pública de Uptime Kuma &nbsp;·&nbsp;
+  <a href="https://nexuspatiotech.com" target="_blank">nexuspatiotech.com</a>
+</footer>
+
+<script>
+  // ── Clock ────────────────────────────────────────────────
+  function updateClock() {
+    document.getElementById('clock').textContent =
+      new Date().toLocaleTimeString('es-BO', { hour12: false });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ── Config ───────────────────────────────────────────────
+  // CORS proxy: corsproxy.io wraps the request server-side
+  // Si despliegas en el mismo dominio que uptime.nexuspatiotech.com no necesitas proxy
+  const PROXY = 'https://corsproxy.io/?';
+  function apiUrl(path) {
+    return PROXY + encodeURIComponent('https://uptime.nexuspatiotech.com' + path);
+  }
+
+  // ── Helpers ──────────────────────────────────────────────
+  function pingColor(ping) {
+    if (ping < 50)  return 'var(--accent3)';
+    if (ping < 200) return 'var(--warn)';
+    return 'var(--danger)';
+  }
+
+  function buildHeartbeatBars(beats, n = 30) {
+    const slice = beats.slice(-n);
+    const maxPing = Math.max(...slice.map(b => b.ping || 1), 1);
+    return slice.map(b => {
+      const h = Math.max(4, Math.round((b.ping / maxPing) * 30));
+      const cls = b.status === 1 ? 'up' : 'down';
+      return `<div class="hb-bar ${cls}" style="height:${h}px;" title="${b.ping}ms"></div>`;
+    }).join('');
+  }
+
+  function uptimePct(list) {
+    const vals = Object.values(list);
+    if (!vals.length) return '—';
+    const avg = vals.reduce((a, v) => a + v, 0) / vals.length;
+    return (avg * 100).toFixed(2) + '%';
+  }
+
+  function lastPing(heartbeatList) {
+    const allBeats = Object.values(heartbeatList).flat();
+    if (!allBeats.length) return null;
+    return allBeats[allBeats.length - 1];
+  }
+
+  function overallStatus(heartbeatList) {
+    const all = Object.values(heartbeatList).flat();
+    if (!all.length) return 'unknown';
+    const last = all[all.length - 1];
+    return last.status === 1 ? 'up' : 'down';
+  }
+
+  // ── Status-page widget (motoclick / nexus) ───────────────
+  async function loadStatusPage(slug, containerId, accent) {
+    const container = document.getElementById(containerId);
+    try {
+      const res = await fetch(
+        apiUrl(`/api/status-page/heartbeat/${slug}`),
+        { cache: 'no-store' }
+      );
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const { heartbeatList, uptimeList } = data;
+
+      const monitorIds = Object.keys(heartbeatList);
+      if (!monitorIds.length) {
+        container.innerHTML = `<div class="error-msg"><div class="err-icon">📭</div><div>Sin datos disponibles</div></div>`;
+        return;
+      }
+
+      // Summary row: use combined last beat
+      const lp = lastPing(heartbeatList);
+      const st = overallStatus(heartbeatList);
+      const up = uptimePct(uptimeList);
+
+      const summaryHtml = `
+        <div class="status-row">
+          <div class="status-pill ${st}">
+            <div class="dot"></div>
+            ${st === 'up' ? 'OPERACIONAL' : 'INCIDENCIA'}
+          </div>
+          <div class="status-meta">
+            <div class="uptime-pct">${up}</div>
+            <div class="uptime-label">uptime últimas 24h</div>
+          </div>
+          <div class="ping-display">
+            <div class="ping-val" style="color:${pingColor(lp?.ping || 0)}">${lp?.ping ?? '—'}<span style="font-size:11px;color:var(--muted)"> ms</span></div>
+            <div class="ping-label">latencia actual</div>
+          </div>
+        </div>`;
+
+      const monitorsHtml = monitorIds.map(id => {
+        const beats = heartbeatList[id];
+        const last = beats[beats.length - 1];
+        const st2 = last.status === 1 ? 'up' : 'down';
+        const monUp = uptimeList[id + '_24'] !== undefined
+          ? (uptimeList[id + '_24'] * 100).toFixed(1) + '%'
+          : '—';
+        return `
+          <div class="monitor-item ${st2}">
+            <div class="monitor-item-header">
+              <div class="monitor-name">Monitor #${id}</div>
+              <div class="monitor-ping" style="color:${pingColor(last.ping)}">${last.ping} ms</div>
+            </div>
+            <div class="heartbeat-bars">${buildHeartbeatBars(beats, 40)}</div>
+            <div class="monitor-footer">
+              <div class="monitor-uptime">24h uptime: <span>${monUp}</span></div>
+              <div class="monitor-uptime">${last.status === 1 ? '✓ UP' : '✗ DOWN'}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      container.innerHTML = summaryHtml + `
+        <div class="section-label">Monitores individuales</div>
+        <div class="monitors-grid">${monitorsHtml}</div>`;
+
+    } catch (err) {
+      container.innerHTML = `
+        <div class="error-msg">
+          <div class="err-icon">⚠️</div>
+          <div>No se pudo cargar la API</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">${err.message}</div>
+          <a href="https://uptime.nexuspatiotech.com/status/${slug}" target="_blank"
+             style="margin-top:8px;color:var(--accent1);font-size:11px;font-family:'Space Mono',monospace;">↗ Ver en el sitio</a>
+        </div>`;
+    }
+  }
+
+  // ── Uptime Monitor (monitor.nexuspatiotech.com) ──────────
+  // We'll try to fetch the main status page as a combined view
+  async function loadUptimeMonitor() {
+    const container = document.getElementById('widget-uptime');
+
+    // Combine both status pages to show all monitors
+    try {
+      const [motoRes, nexusRes] = await Promise.all([
+        fetch(apiUrl('/api/status-page/heartbeat/motoclick'), { cache: 'no-store' }),
+        fetch(apiUrl('/api/status-page/heartbeat/nexus'), { cache: 'no-store' })
+      ]);
+
+      const [moto, nexus] = await Promise.all([motoRes.json(), nexusRes.json()]);
+
+      // Merge all heartbeats
+      const allHeartbeats = { ...moto.heartbeatList, ...nexus.heartbeatList };
+      const allUptimes = { ...moto.uptimeList, ...nexus.uptimeList };
+
+      const monitorIds = Object.keys(allHeartbeats);
+      const totalMonitors = monitorIds.length;
+      const upCount = monitorIds.filter(id => {
+        const beats = allHeartbeats[id];
+        return beats[beats.length - 1].status === 1;
+      }).length;
+      const downCount = totalMonitors - upCount;
+      const globalUp = upCount === totalMonitors;
+
+      const globalUptime = uptimePct(allUptimes);
+      const lp = lastPing(allHeartbeats);
+
+      const summaryHtml = `
+        <div class="status-row">
+          <div class="status-pill ${globalUp ? 'up' : 'down'}">
+            <div class="dot"></div>
+            ${globalUp ? 'TODOS OPERACIONALES' : downCount + ' CON INCIDENCIA'}
+          </div>
+          <div class="status-meta">
+            <div class="uptime-pct">${globalUptime}</div>
+            <div class="uptime-label">uptime global 24h · ${totalMonitors} monitores</div>
+          </div>
+          <div class="ping-display">
+            <div class="ping-val" style="color:${pingColor(lp?.ping || 0)}">${lp?.ping ?? '—'}<span style="font-size:11px;color:var(--muted)"> ms</span></div>
+            <div class="ping-label">último ping</div>
+          </div>
+        </div>`;
+
+      const monitorsHtml = monitorIds.map(id => {
+        const beats = allHeartbeats[id];
+        const last = beats[beats.length - 1];
+        const st2 = last.status === 1 ? 'up' : 'down';
+        const monUp = allUptimes[id + '_24'] !== undefined
+          ? (allUptimes[id + '_24'] * 100).toFixed(1) + '%'
+          : '—';
+        return `
+          <div class="monitor-item ${st2}">
+            <div class="monitor-item-header">
+              <div class="monitor-name">Monitor #${id}</div>
+              <div class="monitor-ping" style="color:${pingColor(last.ping)}">${last.ping} ms</div>
+            </div>
+            <div class="heartbeat-bars">${buildHeartbeatBars(beats, 40)}</div>
+            <div class="monitor-footer">
+              <div class="monitor-uptime">24h: <span>${monUp}</span></div>
+              <div class="monitor-uptime">${last.status === 1 ? '✓ UP' : '✗ DOWN'}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      container.innerHTML = summaryHtml + `
+        <div class="section-label">Vista consolidada — ${totalMonitors} monitores activos</div>
+        <div class="monitors-grid">${monitorsHtml}</div>`;
+
+    } catch (err) {
+      container.innerHTML = `
+        <div class="error-msg">
+          <div class="err-icon">⚠️</div>
+          <div>No se pudo cargar el monitor</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">${err.message}</div>
+          <a href="https://monitor.nexuspatiotech.com/" target="_blank"
+             style="margin-top:8px;color:var(--accent1);font-size:11px;font-family:'Space Mono',monospace;">↗ Ver monitor.nexuspatiotech.com</a>
+        </div>`;
+    }
+  }
+
+  // ── Init ─────────────────────────────────────────────────
+  loadUptimeMonitor();
+  loadStatusPage('motoclick', 'widget-motoclick', '--accent2');
+  loadStatusPage('nexus',     'widget-nexus',     '--accent3');
+
+  // Auto-refresh cada 60 segundos
+  setInterval(() => {
+    loadUptimeMonitor();
+    loadStatusPage('motoclick', 'widget-motoclick', '--accent2');
+    loadStatusPage('nexus',     'widget-nexus',     '--accent3');
+  }, 60000);
+</script>
+
+</body>
+</html>
